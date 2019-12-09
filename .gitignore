@@ -1,2 +1,3 @@
-.ssh/*.key
-.ssh/*.pub
+keys/*.pub
+keys/*.key
+!.gitignore
