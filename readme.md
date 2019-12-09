@@ -1,6 +1,7 @@
 # Demo area
 
-Demo GIT repository
+GIT repository for demonstration purposes.
+!! Content can be changed, deleted without further notice.
 
 ## purpose
 
