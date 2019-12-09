@@ -1,6 +1,10 @@
 # demo
 
-This is a demo branch containing coreDNS data files
+This is a demo branch containing coreDNS data files.
+
+## environment
+
+The zone files  describe the domain shire.loc that contains one member, photonos-01.shire.loc
 
 ## Project
 
