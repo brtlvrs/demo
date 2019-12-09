@@ -1,0 +1,15 @@
+.:53 {
+    forward . 8.8.8.8 9.9.9.9
+    log
+    errors
+}
+shire.loc:53 {
+    file /root/zones/db.shire.loc
+    log
+    errors
+}
+192.168.0.0/16:53 {
+    file /root/zones/db.192.168
+    log
+    errors
+}
