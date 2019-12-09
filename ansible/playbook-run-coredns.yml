@@ -7,7 +7,7 @@
   - name: copy identity SSH keys to .ssh
     copy:
       dest: /home/vagrant/.ssh/
-      src: "{{ projectFolder }}/.ssh/"
+      src: "{{ projectFolder }}/keys/"
       directory_mode: undefined 
       force: yes
       group: vagrant
