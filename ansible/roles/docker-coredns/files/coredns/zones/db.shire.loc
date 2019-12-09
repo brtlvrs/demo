@@ -1,0 +1,12 @@
+$ORIGIN shire.loc.
+@	3600 IN	SOA photon-01.shire.loc. mail.shire.loc. (
+				2017042745 ; serial
+				7200       ; refresh (2 hours)
+				3600       ; retry (1 hour)
+				1209600    ; expire (2 weeks)
+				3600       ; minimum (1 hour)
+				)
+
+			3600 IN NS		ns.shire.loc.
+photon-01	3600 IN A		172.16.16.3
+ns          3600 IN CNAME	photon-01.shire.loc.

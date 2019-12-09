@@ -1,0 +1,11 @@
+---
+# role: install-ansible
+
+- name: install ansible on photon OS
+  register: result
+  command: tdnf install ansible -y
+  changed_when: "'Nothing to do.' not in result.stderr_lines"
+
+- name: show output
+  debug:
+    var: result

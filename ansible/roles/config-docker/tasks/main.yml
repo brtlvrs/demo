@@ -1,0 +1,113 @@
+---
+# role: install-dockerCE
+  # based on https://gist.github.com/CollinChaffin/258dd5d19110d94e8f3953f8ccc2b864
+- name: open ports 2375, 2376 for docker remote on INPUT chain
+  register: iptables
+  iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: "{{item}}"
+    jump: ACCEPT
+    state: present
+  loop:
+    - "2375"
+    - "2376"
+
+- name: save iptables to make settings persistent
+  include_role: 
+    name: save-iptables
+  when: iptables.changed
+
+- name: stop docker and docker.socket service
+  systemd:
+    name: "{{item}}"
+    state: stopped
+  loop:
+    - docker
+    - docker.socket
+  ignore_errors: true
+
+- name: disable docker and docker.socket service
+  systemd:
+    name: "{{item}}"
+    enabled: false
+  loop:
+    - docker
+    - docker.socket
+  ignore_errors: true
+
+- name: copy docker.service file
+  copy:
+      dest: /etc/systemd/system/docker.service # required. Remote absolute path where the file should be copied to. If I(src) is a directory, this must be a directory too. If I(dest) is a nonexistent path and if either I(dest) ends with "/" or I(src) is a directory, I(dest) is created. If I(src) and I(dest) are files, the parent directory of I(dest) isn't created: the task fails if it doesn't already exist.
+      src: "{{projectFolder}}/ansible/roles/config-docker/files/docker.service" # not required. Local path to a file to copy to the remote server; can be absolute or relative. If path is a directory, it is copied recursively. In this case, if path ends with "/", only inside contents of that directory are copied to destination. Otherwise, if it does not end with "/", the directory itself with all contents is copied. This behavior is similar to Rsync.
+      force: yes # not required. the default is C(yes), which will replace the remote file when contents are different than the source. If C(no), the file will only be transferred if the destination does not exist.
+      backup: yes # not required. Create a backup file including the timestamp information so you can get the original file back if you somehow clobbered it incorrectly.
+
+- name: copy docker.socket
+  copy:
+      dest: /etc/systemd/system/docker.socket # required. Remote absolute path where the file should be copied to. If I(src) is a directory, this must be a directory too. If I(dest) is a nonexistent path and if either I(dest) ends with "/" or I(src) is a directory, I(dest) is created. If I(src) and I(dest) are files, the parent directory of I(dest) isn't created: the task fails if it doesn't already exist.
+      src: "{{projectFolder}}/ansible/roles/config-docker/files/docker.socket" # not required. Local path to a file to copy to the remote server; can be absolute or relative. If path is a directory, it is copied recursively. In this case, if path ends with "/", only inside contents of that directory are copied to destination. Otherwise, if it does not end with "/", the directory itself with all contents is copied. This behavior is similar to Rsync.
+      force: yes # not required. the default is C(yes), which will replace the remote file when contents are different than the source. If C(no), the file will only be transferred if the destination does not exist.
+      backup: yes # not required. Create a backup file including the timestamp information so you can get the original file back if you somehow clobbered it incorrectly.
+
+- name: daemon-reload
+  shell: systemctl daemon-reload
+
+- name: enable docker and docker.socket
+  systemd:
+    name: "{{item}}"
+    enabled: true
+  loop:
+    - docker
+    - docker.socket
+
+- name: start docker service
+  register: dockerStarted
+  systemd:
+    name: docker
+    state: started
+  ignore_errors: yes
+
+- name: reboot OS, if docker failed to start
+  reboot:
+      pre_reboot_delay: 0 # not required. Seconds for shutdown to wait before requesting reboot.,On Linux and macOS, this is converted to minutes and rounded down. If less than 60, it will be set to 0.,On Solaris and FreeBSD, this will be seconds.
+      post_reboot_delay: 0 # not required. Seconds to wait after the reboot was successful and the connection was re-established.,This is useful if you want wait for something to settle despite your connection already working.
+      test_command: whoami # not required. Command to run on the rebooted host and expect success from to determine the machine is ready for further tasks.
+      reboot_timeout: 600 # not required. Maximum seconds to wait for machine to reboot and respond to a test command.,This timeout is evaluated separately for both network connection and test command success so the maximum execution time for the module is twice this amount.
+      msg: Reboot initiated by Ansible # not required. Message to display to users before reboot.
+  when: dockerStarted.failed
+
+- name: start docker and docker.socket
+  systemd:
+    name: "{{item}}"
+    state: started
+  loop:
+    - docker
+    - docker.socket
+
+- name: test docker #-- test remote connection to docker by calling docker version, expection 'Server: Docker' in output.
+  shell: docker -H tcp://{{ansible_default_ipv4.address}}:2375 version
+  register: output
+  failed_when: "'Server: Docker Engine' not in output.stdout"
+  changed_when: "'Server: Docker' not in output.stdout"
+
+- name: install python-pip, needed to install docker-py correctly
+  register: result
+  command: tdnf install -y {{item}}
+  changed_when: "'is already installed.' not in result.stderr"
+  loop:
+    - python-pip
+
+- name: uninstall docker-py by tdnf
+  register: result
+  command: tdnf remove -y {{item}}
+  changed_when: "'Nothing to do.' not in result.stderr"
+  loop:
+    - python-py   
+
+
+- name: install docker-py
+  pip:
+    name: docker-py
+    state: present
+    

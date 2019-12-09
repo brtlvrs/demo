@@ -1,0 +1,12 @@
+---
+- name: save iptables
+  register: iptables_Saved
+  shell: iptables-save > /etc/systemd/scripts/ip4save
+  ignore_errors: true
+
+
+- name: restart iptables
+  systemd:
+    name: iptables
+    state: restarted
+  when: iptables_Saved.changed

@@ -1,0 +1,21 @@
+---
+- name: copy dockerfile
+  copy:
+    dest: /data/docker_images # required. Remote absolute path where the file should be copied to. If I(src) is a directory, this must be a directory too. If I(dest) is a nonexistent path and if either I(dest) ends with "/" or I(src) is a directory, I(dest) is created. If I(src) and I(dest) are files, the parent directory of I(dest) isn't created: the task fails if it doesn't already exist.
+    src: "{{projectFolder}}/docker/build/coredns" # not required. Local path to a file to copy to the remote server; can be absolute or relative. If path is a directory, it is copied recursively. In this case, if path ends with "/", only inside contents of that directory are copied to destination. Otherwise, if it does not end with "/", the directory itself with all contents is copied. This behavior is similar to Rsync.
+    force: yes # not required. the default is C(yes), which will replace the remote file when contents are different than the source. If C(no), the file will only be transferred if the destination does not exist.
+
+- name: build docker image for coredns
+  docker_image:
+      build:
+        pull: "false"
+        path: /data/docker_images/coredns/ 
+      source: build
+      name: "coredns" # required. Image name. Name format will be one of: name, repository/name, registry_server:port/name. When pushing or pulling an image the name can optionally include the tag by appending ':tag_name'.
+      tag: latest # not required. Used to select an image when pulling. Will be added to the image when pushing, tagging or building. Defaults to I(latest).,If C(name) parameter format is I(name:tag), then tag value from C(name) will take precedence.
+      state: present # not required. choices: absent;present;build. Make assertions about the state of an image.,When C(absent) an image will be removed. Use the force option to un-tag and remove all images matching the provided name.,When C(present) check if an image exists using the provided name and tag. If the image is not found or the force option is used, the image will either be pulled, built or loaded. By default the image will be pulled from Docker Hub. To build the image, provide a path value set to a directory containing a context and Dockerfile. To load an image, specify load_path to provide a path to an archive file. To tag an image to a repository, provide a repository path. If the name contains a repository path, it will be pushed.,NOTE: C(build) is DEPRECATED and will be removed in release 2.3. Specifying C(build) will behave the same as C(present).
+      push: false # not required. Push the image to the registry. Specify the registry as part of the I(name) or I(repository) parameter.
+
+- name: run coredns
+  include_role:
+    name: run-coreDNS

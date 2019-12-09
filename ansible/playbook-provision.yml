@@ -1,0 +1,29 @@
+---
+- hosts: ctlNode
+  gather_facts: yes
+  become: true
+
+  pre_tasks:
+  - name: copy identity SSH keys to .ssh
+    copy:
+      dest: /home/vagrant/.ssh/
+      src: "{{ projectFolder }}/.ssh/"
+      directory_mode: undefined 
+      force: yes
+      group: vagrant
+      mode: "0600"
+      owner: "vagrant"
+
+- hosts: photonNode
+  gather_facts: yes
+  become: true
+  roles:
+    - role: photonOS-iptables-config
+    - role: photonOS-update
+    - role: config-docker #-- do some default prep stuff
+    - role: docker-coredns #-- deploy coreDNS in docker
+    - role: ansible-role-dns #-- configure name resolving to use coreDNS
+      dns_domain: shire.loc
+      dns_nameservers: ['{{ansible_default_ipv4.address}}', '8.8.8.8'] #-- use a second DNS server as backup for situations wheren coreDNS fails.
+      dns_searchs: 'shire.loc'
+  

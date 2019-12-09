@@ -1,0 +1,20 @@
+---
+# role: photonOS-update
+- name: tdnf distro-sync
+  register: result
+  command: tdnf distro-sync -y
+  changed_when: "'Nothing to do.' not in result.stderr"
+
+- name: update tdnf packages
+  register: result
+  command: tdnf upgrade -y
+  changed_when: "'Nothing to do.' not in result.stderr"
+
+- name: install packages
+  register: result
+  command: tdnf install -y {{item}}
+  loop:
+    - git
+    - python-pip
+    - bindutils
+  changed_when: "'is already installed.' not in result.stderr"

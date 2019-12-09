@@ -1,0 +1,42 @@
+---
+#role: photonOS-iptables-config
+
+- name: open ports 2375, 2376 for docker remote on INPUT chain
+  register: iptables_docker_remote
+  iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: "{{item}}"
+    jump: ACCEPT
+    state: present
+  loop:
+    - '2375'
+    - "2376"
+
+- name: allow udp dns traffic for INPUT and OUTPUT chain
+  register: iptables_DNS
+  iptables:
+    chain: "{{item}}"
+    protocol: udp
+    destination_port: "53"
+    jump: ACCEPT
+    state: present
+  loop:
+    - INPUT
+    - OUTPUT
+
+- name: allow ICMP
+  register: iptables_ICMP
+  iptables:
+    chain: "{{item}}"
+    protocol: icmp
+    jump: ACCEPT
+    state: present
+  loop:
+    - INPUT
+    - OUTPUT
+
+- name: save iptables
+  include_role: 
+    name: save-iptables
+  when: iptables_ICMP.changed or iptables_DNS.changed or iptables_docker_remote.changed
