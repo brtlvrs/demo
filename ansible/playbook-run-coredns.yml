@@ -5,7 +5,7 @@
 
   pre_tasks:
   roles:
-    - role: pre_task-copyKeys
+    - role: pre_task-copyKeys #-- copying ssh key file  to access photonOS VM with ansible
 
 - hosts: photonNode
   gather_facts: yes
