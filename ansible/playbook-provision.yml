@@ -4,15 +4,8 @@
   become: true
 
   pre_tasks:
-  - name: copy identity SSH keys to .ssh
-    copy:
-      dest: /home/vagrant/.ssh/
-      src: "{{ projectFolder }}/keys/"
-      directory_mode: undefined 
-      force: yes
-      group: vagrant
-      mode: "0600"
-      owner: "vagrant"
+  roles:
+    - role: pre_task-copyKeys
 
 - hosts: photonNode
   gather_facts: yes

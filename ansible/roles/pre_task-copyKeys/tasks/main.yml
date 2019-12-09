@@ -1,0 +1,10 @@
+---
+- name: copy identity SSH keys to .ssh  #-- making sure the ssh key file is in place with the correct permissions, user and group.
+  copy:
+    dest: /home/vagrant/.ssh/
+    src: "{{ projectFolder }}/keys/"
+    directory_mode: undefined 
+    force: yes
+    group: vagrant
+    mode: "0600"
+    owner: "vagrant"

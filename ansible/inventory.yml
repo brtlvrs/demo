@@ -1,15 +1,11 @@
 All:
   hosts:
-    ctlNode:
+    ctlNode: # this is node from which ansible playbooks are run
       ansible_connection: local
     photonNode:
       ansible_ssh_host: 192.168.153.134
-      ansible_ssh_private_key_file: /home/vagrant/.ssh/id_rsa-photonos-01.key
-      ansible_user: root
-    photonOS02:
-      ansible_ssh_host: 192.168.153.136
-      ansible_ssh_private_key_file: /home/vagrant/.ssh/id_rsa-photonos-01.key
+      ansible_ssh_private_key_file: /home/vagrant/.ssh/id_rsa-photonos-01.key #  you can change this to "{{projectFolder}}/keys/id_rsa-photonos-01.key"  #/home/vagrant/.ssh/id_rsa-photonos-01.key
       ansible_user: root
   vars:
-    projectFolder: /projects/project-photonOS
-    updateGitRepos: true
+    projectFolder: /projects/project-photonOS # this is the root folder where ansbile playbooks are placed.
+    updateGitRepos: true # set to false if update coreDNS files with Git is not needed.
